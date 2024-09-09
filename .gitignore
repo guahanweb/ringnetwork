@@ -1,0 +1,15 @@
+node_modules
+dist
+build
+
+# only the power interface is out-of-the-box
+# all other sites are fed via the forges
+nginx/sites-enabled/*
+!nginx/sites-enabled/power.ringnetwork.com.conf
+
+app/public/css/*
+!app/public/css/power
+
+app/views/*
+!app/views/layouts
+!app/views/power

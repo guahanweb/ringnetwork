@@ -1,0 +1,82 @@
+#!/bin/bash
+export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
+export PROJECT_ROOT="$( dirname "${DIR}" )"
+
+COMMAND=$1
+CLIENT=$2
+
+# Define the base domains and IP address
+DOMAINS=("power.ringnetwork.com" "elven.ringnetwork.com" "dwarven.ringnetwork.com")
+IP="127.0.0.1"
+
+# Function to add subdomains to /etc/hosts
+add_subdomains() {
+    echo "Adding subdomains to /etc/hosts..."
+    for DOMAIN in "${DOMAINS[@]}"; do
+        if ! grep -q "$DOMAIN" /etc/hosts; then
+            echo "$IP $DOMAIN" | sudo tee -a /etc/hosts > /dev/null
+            echo "Added: $DOMAIN"
+        else
+            echo "Already exists: $DOMAIN"
+        fi
+    done
+}
+
+# Function to remove subdomains from /etc/hosts
+remove_subdomains() {
+    echo "Removing subdomains from /etc/hosts..."
+    for DOMAIN in "${DOMAINS[@]}"; do
+        if grep -q "$DOMAIN" /etc/hosts; then
+            sudo sed -i.bak "/$DOMAIN/d" /etc/hosts
+            echo "Removed: $DOMAIN"
+        else
+            echo "Not found: $DOMAIN"
+        fi
+    done
+}
+
+
+case $COMMAND in
+  onboard-client)
+    if [ -z "$CLIENT" ]; then
+      echo "Usage: ./scripts/dev onboard-client <client>"
+      exit 1
+    fi
+    cp -rf ${PROJECT_ROOT}/forges/$CLIENT/nginx/$CLIENT.ringnetwork.com.conf ${PROJECT_ROOT}/nginx/sites-enabled/
+    cp -rf ${PROJECT_ROOT}/forges/$CLIENT/templates ${PROJECT_ROOT}/app/views/$CLIENT
+    cp -rf ${PROJECT_ROOT}/forges/$CLIENT/css ${PROJECT_ROOT}/app/public/css/$CLIENT
+    echo "$CLIENT has been onboarded successfully."
+    ;;
+  
+  remove-client)
+    if [ -z "$CLIENT" ]; then
+      echo "Usage: ./scripts/dev remove-client <client>"
+      exit 1
+    fi
+    rm -f ${PROJECT_ROOT}/nginx/sites-enabled/$CLIENT.ringnetwork.com.conf
+    rm -rf ${PROJECT_ROOT}/app/views/$CLIENT
+    rm -rf ${PROJECT_ROOT}/app/public/css/$CLIENT
+    echo "$CLIENT has been removed successfully."
+    ;;
+
+  add-subdomains)
+    add_subdomains
+    ;;
+
+  remove-subdomains)
+    remove_subdomains
+    ;;
+  
+  deploy)
+    docker-compose up --build
+    ;;
+
+  stop)
+    docker-compose down
+    ;;
+
+  *)
+    echo "Usage: ./scripts/dev {onboard-client|remove-client|deploy|stop} <client>"
+    exit 1
+    ;;
+esac

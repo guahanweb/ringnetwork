@@ -1,0 +1,18 @@
+<!-- app/views/layouts/base.njk -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/{{ css }}">
+    <title>{{ client | capitalize }} Client</title>
+</head>
+<body>
+    <header>
+        <h1>Welcome to the {{ client | capitalize }} Interface</h1>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
